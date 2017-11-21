@@ -6,13 +6,15 @@ import java.nio.FloatBuffer;
 
 import org.lwjgl.BufferUtils;
 
-import tk.nukeduck.vivivox.Main;
+import tk.nukeduck.vivivox.VivivoxMain;
 import tk.nukeduck.vivivox.block.Block;
 
 public class Chunk {
-	public byte[][][] blocks = new byte[16][16][16];
-	public byte[][][] lightLevels = new byte[16][16][16];
-	public byte[][] biomes = new byte[16][16];
+	public static final int chunkSize = 32;
+	
+	public byte[][][] blocks = new byte[chunkSize][chunkSize][chunkSize];
+	public byte[][][] lightLevels = new byte[chunkSize][chunkSize][chunkSize];
+	public byte[][] biomes = new byte[chunkSize][chunkSize];
 	
 	public Chunk(int relativeX, int relativeY, int relativeZ) {
 		this.relativeX = relativeX;
@@ -52,6 +54,7 @@ public class Chunk {
 	
 	public void updateVBO(boolean smoothLighting, World world, int x, int y, int z) {
 		amountOfVertices = 0;
+		amountOfWaterVertices = 0;
 		
 		for(int x1 = 0; x1 < blocks.length; x1++) {
 			for(int y1 = 0; y1 < blocks.length; y1++) {
@@ -59,6 +62,8 @@ public class Chunk {
 					if(getRelativeBlock(x1, y1, z1, world) != null && getRelativeBlock(x1, y1, z1, world) != Block.air && !(getRelativeBlock(x1 + 1, y1, z1, world) != null && getRelativeBlock(x1 + 1, y1, z1, world) != Block.air && getRelativeBlock(x1 + 1, y1, z1, world).isOpaque() && getRelativeBlock(x1 - 1, y1, z1, world) != null && getRelativeBlock(x1 - 1, y1, z1, world) != Block.air && getRelativeBlock(x1 - 1, y1, z1, world).isOpaque() && getRelativeBlock(x1, y1, z1 + 1, world) != null && getRelativeBlock(x1, y1, z1 + 1, world) != Block.air && getRelativeBlock(x1, y1, z1 + 1, world).isOpaque() && getRelativeBlock(x1, y1, z1 - 1, world) != null && getRelativeBlock(x1, y1, z1 - 1, world) != Block.air && getRelativeBlock(x1, y1, z1 - 1, world).isOpaque() && getRelativeBlock(x1, y1 + 1, z1, world) != null && getRelativeBlock(x1, y1 + 1, z1, world) != Block.air && getRelativeBlock(x1, y1 + 1, z1, world).isOpaque() && getRelativeBlock(x1, y1 - 1, z1, world) != null && getRelativeBlock(x1, y1 - 1, z1, world) != Block.air && getRelativeBlock(x1, y1 - 1, z1, world).isOpaque())) {
 						if(getRelativeBlock(x1, y1, z1, world) != Block.water) {
 							amountOfVertices += Block.getShowingSides(world, relativeX + x1, relativeY + y1, relativeZ + z1) * 6;
+						} else {
+							if(world.getBlock(relativeX + x1, relativeY + y1 + 1, relativeZ + z1) != Block.water) amountOfWaterVertices += 6;
 						}
 					}
 				}
@@ -66,6 +71,7 @@ public class Chunk {
 		}
 		
 		FloatBuffer vertexData = BufferUtils.createFloatBuffer(amountOfVertices * vertexSize + amountOfVertices * colorSize + amountOfVertices * textureSize);
+		FloatBuffer waterVertexData = BufferUtils.createFloatBuffer(amountOfWaterVertices * vertexSize + amountOfWaterVertices * colorSize + amountOfWaterVertices * textureSize);
 		
 		try {
 			for(int x1 = 0; x1 < blocks.length; x1++) {
@@ -74,6 +80,8 @@ public class Chunk {
 						if(getRelativeBlock(x1, y1, z1, world) != null && getRelativeBlock(x1, y1, z1, world) != Block.air && !(getRelativeBlock(x1 + 1, y1, z1, world) != null && getRelativeBlock(x1 + 1, y1, z1, world) != Block.air && getRelativeBlock(x1 + 1, y1, z1, world).isOpaque() && getRelativeBlock(x1 - 1, y1, z1, world) != null && getRelativeBlock(x1 - 1, y1, z1, world) != Block.air && getRelativeBlock(x1 - 1, y1, z1, world).isOpaque() && getRelativeBlock(x1, y1, z1 + 1, world) != null && getRelativeBlock(x1, y1, z1 + 1, world) != Block.air && getRelativeBlock(x1, y1, z1 + 1, world).isOpaque() && getRelativeBlock(x1, y1, z1 - 1, world) != null && getRelativeBlock(x1, y1, z1 - 1, world) != Block.air && getRelativeBlock(x1, y1, z1 - 1, world).isOpaque() && getRelativeBlock(x1, y1 + 1, z1, world) != null && getRelativeBlock(x1, y1 + 1, z1, world) != Block.air && getRelativeBlock(x1, y1 + 1, z1, world).isOpaque() && getRelativeBlock(x1, y1 - 1, z1, world) != null && getRelativeBlock(x1, y1 - 1, z1, world) != Block.air && getRelativeBlock(x1, y1 - 1, z1, world).isOpaque())) {
 							if(getRelativeBlock(x1, y1, z1, world) != Block.water) {
 								getRelativeBlock(x1, y1, z1, world).renderToVBO(world, relativeX + x1, relativeY + y1, relativeZ + z1, smoothLighting, vertexData);
+							} else {
+								getRelativeBlock(x1, y1, z1, world).renderToVBO(world, relativeX + x1, relativeY + y1, relativeZ + z1, smoothLighting, waterVertexData);
 							}
 						}
 					}
@@ -85,44 +93,10 @@ public class Chunk {
 		
 		vertexData.flip();
 		
-		world.chunksRender[x][y][z] = glGenBuffers();
+		world.chunksRender[x][y][z] = world.chunksRenderWater[x][y][z] = glGenBuffers();
 		glBindBuffer(GL_ARRAY_BUFFER, world.chunksRender[x][y][z]);
 		glBufferData(GL_ARRAY_BUFFER, vertexData, GL_STATIC_DRAW);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		
-		// Water
-		
-		amountOfWaterVertices = 0;
-		
-		for(int x1 = 0; x1 < blocks.length; x1++) {
-			for(int y1 = 0; y1 < blocks.length; y1++) {
-				for(int z1 = 0; z1 < blocks.length; z1++) {
-					if(getRelativeBlock(x1, y1, z1, world) != null && getRelativeBlock(x1, y1, z1, world) != Block.air && !(getRelativeBlock(x1 + 1, y1, z1, world) != null && getRelativeBlock(x1 + 1, y1, z1, world) != Block.air && getRelativeBlock(x1 + 1, y1, z1, world).isOpaque() && getRelativeBlock(x1 - 1, y1, z1, world) != null && getRelativeBlock(x1 - 1, y1, z1, world) != Block.air && getRelativeBlock(x1 - 1, y1, z1, world).isOpaque() && getRelativeBlock(x1, y1, z1 + 1, world) != null && getRelativeBlock(x1, y1, z1 + 1, world) != Block.air && getRelativeBlock(x1, y1, z1 + 1, world).isOpaque() && getRelativeBlock(x1, y1, z1 - 1, world) != null && getRelativeBlock(x1, y1, z1 - 1, world) != Block.air && getRelativeBlock(x1, y1, z1 - 1, world).isOpaque() && getRelativeBlock(x1, y1 + 1, z1, world) != null && getRelativeBlock(x1, y1 + 1, z1, world) != Block.air && getRelativeBlock(x1, y1 + 1, z1, world).isOpaque() && getRelativeBlock(x1, y1 - 1, z1, world) != null && getRelativeBlock(x1, y1 - 1, z1, world) != Block.air && getRelativeBlock(x1, y1 - 1, z1, world).isOpaque())) {
-						if(getRelativeBlock(x1, y1, z1, world) == Block.water) {
-							if(world.getBlock(relativeX + x1, relativeY + y1 + 1, relativeZ + z1) != Block.water) amountOfWaterVertices += 6;
-						}
-					}
-				}
-			}
-		}
-		
-		FloatBuffer waterVertexData = BufferUtils.createFloatBuffer(amountOfWaterVertices * vertexSize + amountOfWaterVertices * colorSize + amountOfWaterVertices * textureSize);
-		
-		try {
-			for(int x1 = 0; x1 < blocks.length; x1++) {
-				for(int y1 = 0; y1 < blocks.length; y1++) {
-					for(int z1 = 0; z1 < blocks.length; z1++) {
-						if(getRelativeBlock(x1, y1, z1, world) != null && getRelativeBlock(x1, y1, z1, world) != Block.air && !(getRelativeBlock(x1 + 1, y1, z1, world) != null && getRelativeBlock(x1 + 1, y1, z1, world) != Block.air && getRelativeBlock(x1 + 1, y1, z1, world).isOpaque() && getRelativeBlock(x1 - 1, y1, z1, world) != null && getRelativeBlock(x1 - 1, y1, z1, world) != Block.air && getRelativeBlock(x1 - 1, y1, z1, world).isOpaque() && getRelativeBlock(x1, y1, z1 + 1, world) != null && getRelativeBlock(x1, y1, z1 + 1, world) != Block.air && getRelativeBlock(x1, y1, z1 + 1, world).isOpaque() && getRelativeBlock(x1, y1, z1 - 1, world) != null && getRelativeBlock(x1, y1, z1 - 1, world) != Block.air && getRelativeBlock(x1, y1, z1 - 1, world).isOpaque() && getRelativeBlock(x1, y1 + 1, z1, world) != null && getRelativeBlock(x1, y1 + 1, z1, world) != Block.air && getRelativeBlock(x1, y1 + 1, z1, world).isOpaque() && getRelativeBlock(x1, y1 - 1, z1, world) != null && getRelativeBlock(x1, y1 - 1, z1, world) != Block.air && getRelativeBlock(x1, y1 - 1, z1, world).isOpaque())) {
-							if(getRelativeBlock(x1, y1, z1, world) == Block.water) {
-								getRelativeBlock(x1, y1, z1, world).renderToVBO(world, relativeX + x1, relativeY + y1, relativeZ + z1, smoothLighting, waterVertexData);
-							}
-						}
-					}
-				}
-			}
-		} catch(Exception e) {
-			
-		}
+		// No need to bind default buffer because we're about to rebind anyway
 		
 		waterVertexData.flip();
 		
@@ -132,7 +106,7 @@ public class Chunk {
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 	
-	public static int renderMax = Main.renderDistance + 4;
+	public static int renderMax = VivivoxMain.renderDistance + 4;
 	
 	public int relativeX;
 	public int relativeY;
@@ -144,5 +118,15 @@ public class Chunk {
 	
 	public byte getRelativeBiome(int x, int z, World world) {
 		return world.getBiome(relativeX + x, relativeZ + z);
+	}
+
+	public void updateBlocks() {
+		for(int x = 0; x < chunkSize; x++) {
+			for(int y = 0; y < chunkSize; y++) {
+				for(int z = 0; z < chunkSize; z++) {
+					
+				}
+			}
+		}
 	}
 }

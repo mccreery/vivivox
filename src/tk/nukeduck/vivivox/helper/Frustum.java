@@ -8,23 +8,13 @@ import static org.lwjgl.opengl.GL11.*;
 
 public class Frustum
 {
-    public static final int RIGHT   = 0;
-    public static final int LEFT    = 1;
-    public static final int BOTTOM  = 2;
-    public static final int TOP     = 3;
-    public static final int BACK    = 4;
-    public static final int FRONT   = 5;
-
-    public static final int A = 0;
-    public static final int B = 1;
-    public static final int C = 2;
-    public static final int D = 3;
-
+    public static final int RIGHT = 0, LEFT = 1, BOTTOM = 2, TOP = 3, BACK = 4, FRONT = 5;
+    public static final int A = 0, B = 1, C = 2, D = 3;
+    
     float[][] frustum = new float[6][4];
-
-    FloatBuffer modelBuffer;
-    FloatBuffer projectionBuffer;
-
+    
+    FloatBuffer modelBuffer, projectionBuffer;
+    
     public Frustum() {
         modelBuffer = BufferUtils.createFloatBuffer(16);
         projectionBuffer = BufferUtils.createFloatBuffer(16);
@@ -32,13 +22,13 @@ public class Frustum
 
     public void normalizePlane(float[][] frustum, int side) {
         float magnitude = (float) Math.sqrt(frustum[side][A] * frustum[side][A] + frustum[side][B] * frustum[side][B] + frustum[side][C] * frustum[side][C]);
-
+        
         frustum[side][A] /= magnitude;
         frustum[side][B] /= magnitude;
         frustum[side][C] /= magnitude;
         frustum[side][D] /= magnitude;
     }
-
+    
     public void calculateFrustum() {
         float[] projectionMatrix = new float[16];
         float[] modelMatrix = new float[16];

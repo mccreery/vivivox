@@ -7,6 +7,8 @@ import tk.nukeduck.vivivox.world.World;
 public class Player {
 	public Vector3f position;
 	
+	public boolean isOnGround = false;
+	
 	public float rotationPitch;
 	public float rotationYaw;
 	
@@ -15,7 +17,7 @@ public class Player {
 	World world;
 	
 	public Player(World world) {
-		this.position = new Vector3f(0F, 100F, 0F);
+		this.position = new Vector3f(world.worldSize / 2 + 0.5F, 100F, world.worldSize / 2 + 0.5F);
 		this.world = world;
 	}
 	

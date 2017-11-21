@@ -8,7 +8,7 @@ public class Font {
 	
 	public Font(UnicodeFont font) {
 		this.setFont(font);
-		this.height = font.getHeight("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
+		this.height = font.getHeight("A");
 	}
 	
 	public void setFont(UnicodeFont font) {

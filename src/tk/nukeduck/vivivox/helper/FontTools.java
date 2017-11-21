@@ -9,9 +9,9 @@ import tk.nukeduck.vivivox.Font;
 
 public class FontTools {
 	@SuppressWarnings("unchecked")
-	public static UnicodeFont createFont(String resSource, boolean bold, boolean italic) throws SlickException {
+	public static UnicodeFont createFont(String resSource, boolean bold, boolean italic, int size) throws SlickException {
 		UnicodeFont font; {
-			font = new UnicodeFont(resSource, 18, bold, italic);
+			font = new UnicodeFont(resSource, size, bold, italic);
 			font.addAsciiGlyphs();
 			
 			ColorEffect e = new ColorEffect();
