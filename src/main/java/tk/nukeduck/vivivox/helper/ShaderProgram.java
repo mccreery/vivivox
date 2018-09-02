@@ -1,7 +1,6 @@
 package tk.nukeduck.vivivox.helper;
 
 import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.InputStreamReader;
 
 import org.lwjgl.opengl.GL11;

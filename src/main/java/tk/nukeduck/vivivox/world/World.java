@@ -6,7 +6,6 @@ import static org.lwjgl.opengl.GL15.*;
 import java.util.*;
 
 import org.lwjgl.opengl.*;
-import org.lwjgl.util.glu.GLU;
 import org.lwjgl.util.vector.Vector3f;
 import org.newdawn.slick.*;
 
@@ -14,7 +13,6 @@ import tk.nukeduck.vivivox.Fonts;
 import tk.nukeduck.vivivox.VivivoxMain;
 import tk.nukeduck.vivivox.block.*;
 import tk.nukeduck.vivivox.entity.Entity;
-import tk.nukeduck.vivivox.entity.EntityKillyThingy;
 import tk.nukeduck.vivivox.helper.*;
 import tk.nukeduck.vivivox.world.generator.*;
 
@@ -458,7 +456,7 @@ public class World
 		glPushMatrix(); {
 			glEnableClientState(GL_VERTEX_ARRAY);
 			glEnableClientState(GL_COLOR_ARRAY);
-			glEnableClientState(GL_TEXTURE_COORD_ARRAY);//TODO
+			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
 			glTranslatef(position.x, position.y, position.z);
 			glRotatef(rotation, 0, 1, 0);
@@ -532,7 +530,7 @@ public class World
 
             glDisableClientState(GL_TEXTURE_COORD_ARRAY);
             glDisableClientState(GL_COLOR_ARRAY);
-            glDisableClientState(GL_VERTEX_ARRAY);//TODO
+            glDisableClientState(GL_VERTEX_ARRAY);
 
 			for(int worldX = -1; worldX < 2; worldX++) {
 				for(int worldZ = -1; worldZ < 2; worldZ++) {

@@ -208,7 +208,7 @@ public class VivivoxMain {
 	}
 
 	private static void renderTick() {
-		renderDistance = 128; // TODO
+		renderDistance = 128;
 
 		while(world.getBlock((int) player.position.x, (int) player.position.y, (int) player.position.z) != null && world.getBlock((int) player.position.x, (int) player.position.y, (int) player.position.z).isOpaque()) {
 			player.position.y = (int) player.position.y + 1;

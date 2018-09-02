@@ -11,7 +11,6 @@ public class Fonts {
 		try {
 			hudFont = new Font(FontTools.createFont("Laconic Regular.ttf", false, false, 20));
 		} catch (SlickException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
