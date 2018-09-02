@@ -1,0 +1,26 @@
+buildscript {
+    repositories {
+        maven {url "https://plugins.gradle.org/m2/"}
+    }
+    dependencies {
+        classpath "gradle.plugin.com.stehno:gradle-natives:0.3.1"
+    }
+}
+
+apply plugin: "java"
+apply plugin: "com.stehno.natives"
+
+ext {
+    lwjgl = "2.9.3"
+    slick = "1.0.1"
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile "org.lwjgl.lwjgl:lwjgl:$lwjgl"
+    compile "org.lwjgl.lwjgl:lwjgl_util:$lwjgl"
+    compile "org.slick2d:slick2d-core:$slick"
+}
