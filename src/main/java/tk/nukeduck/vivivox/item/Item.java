@@ -4,12 +4,11 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL15.*;
 
 import java.nio.FloatBuffer;
+import java.util.Arrays;
 
 import org.lwjgl.BufferUtils;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Image;
-
-import tk.nukeduck.vivivox.helper.GeneralTools;
 
 public class Item {
 	protected byte id = 0;
@@ -294,7 +293,7 @@ public class Item {
 
 					//float[] colorDark = new float[] {color[0] - 0.1F, color[1] - 0.1F, color[2] - 0.1F};
 
-					int textureIndex = GeneralTools.indexOf(subTextureIndices, getPixelAt(texX, texY + 16, 256, itemMap.getTexture().getTextureData()));
+					int textureIndex = Arrays.asList(subTextureIndices).indexOf(getPixelAt(texX, texY + 16, 256, itemMap.getTexture().getTextureData()));
 					float subTexX = (textureIndex * 8F) / 256F;
 					float subTexY = 129F / 256F;
 

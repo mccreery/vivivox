@@ -341,8 +341,8 @@ public class VivivoxMain {
 		world.maxZ = (int) ((player.position.z + renderDistance) / Chunk.chunkSize);
 
 		if(world.maxX > world.chunks.length) world.maxX = world.chunks.length;
-		if(world.maxY > world.chunks[0].length) world.maxY = world.chunks[0].length;
-		if(world.maxZ > world.chunks[0][0].length) world.maxZ = world.chunks[0][0].length;
+		if(world.maxY > world.chunks.length) world.maxY = world.chunks.length;
+		if(world.maxZ > world.chunks.length) world.maxZ = world.chunks.length;
 
 		if(Keyboard.isKeyDown(Keyboard.KEY_W)) {
 			PlayerMovement.walkForwards(playerSpeed * speedMultiplier, player);

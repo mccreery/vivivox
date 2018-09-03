@@ -1,6 +1,8 @@
 package tk.nukeduck.vivivox.block;
 
 import java.nio.FloatBuffer;
+
+import tk.nukeduck.vivivox.world.BlockState;
 import tk.nukeduck.vivivox.world.World;
 
 public class BlockWater extends Block {
@@ -8,18 +10,18 @@ public class BlockWater extends Block {
 		super(id);
 		this.setTransparent();
 	}
-	
+
 	public BlockWater setHeight(int height) {
 		this.setBlockBounds(0, 0, 0, 1, (float) height * 0.125F, 1);
 		return this;
 	}
-	
+
 	public static int animationFrame = 0;
-	
+
 	/*@Override
 	public void update(World world, int x, int y, int z) {
 		int height = positionOf(Block.waters, this) + 1;
-		
+
 		if(world.getBlock(x,  y - 1, z).equals(Block.air)) {
 			world.setBlock(x, y - 1, z, this);
 			world.setBlock(x, y, z, Block.air);
@@ -31,176 +33,76 @@ public class BlockWater extends Block {
 			}
 		}
 	}*/
-	
+
 	public int positionOf(Block[] blocks, Block block) {
 		for(int i = 0; i < blocks.length; i++) {
 			if(blocks[i].equals(block)) return i;
 		}
 		return 0;
 	}
-	
+
 	@Override
-	public void renderToVBO(World world, int x, int y, int z, boolean smoothLighting, FloatBuffer vertexData) {
+	public void renderToVBO(World world, BlockState state, boolean smoothLighting, FloatBuffer vertexData) {
+		int x = state.getPosition().x;
+		int y = state.getPosition().y;
+		int z = state.getPosition().z;
+
 		float minX = min.x + x;
 		float maxX = max.x + x;
 		// float minY = min.y + y; Not needed because bottom side is never rendered
 		float maxY = max.y + y;
 		float minZ = min.z + z;
 		float maxZ = max.z + z;
-		
-		//
-		float thisBlock = world.getLightLevel(x, y + 1, z);
-		
-		float xPlus = world.getLightLevel(x + 1, y + 1, z);
-		float xMinus = world.getLightLevel(x - 1, y + 1, z);
-		float zPlus = world.getLightLevel(x, y + 1, z + 1);
-		float zMinus = world.getLightLevel(x, y + 1, z - 1);
-		
-		float xPluszPlus = world.getLightLevel(x + 1, y + 1, z + 1);
-		float xMinuszMinus = world.getLightLevel(x - 1, y + 1, z - 1);
-		float xPluszMinus = world.getLightLevel(x + 1, y + 1, z - 1);
-		float xMinuszPlus = world.getLightLevel(x - 1, y + 1, z + 1);
-		
-		float[] colors = {(thisBlock + zMinus + xMinuszMinus + xMinus) / 4 * 0.1F + 0.4F, (thisBlock + xMinus + zPlus + xMinuszPlus) / 4 * 0.1F + 0.4F, (thisBlock + zPlus + xPluszPlus + xPlus) / 4 * 0.1F + 0.4F, (thisBlock + xPlus + zMinus + xPluszMinus) / 4 * 0.1F + 0.4F};
-		float[][] colorsTop = new float[][] {{colors[0], colors[0], colors[0]}, {colors[1], colors[1], colors[1]}, {colors[2], colors[2], colors[2]}, {colors[3], colors[3], colors[3]}};
-		float[][] colorsTopOccluded = new float[][] {{colors[0] - 0.3F, colors[0] - 0.3F, colors[0] - 0.3F}, {colors[1] - 0.3F, colors[1] - 0.3F, colors[1] - 0.3F}, {colors[2] - 0.3F, colors[2] - 0.3F, colors[2] - 0.3F}, {colors[3] - 0.3F, colors[3] - 0.3F, colors[3] - 0.3F}};
-		//
-		
-		//float[] color = new float[] {
-		//	(world.getLightLevel(x, y, z) * 0.06F) + 0.4F, (world.getLightLevel(x, y, z) * 0.06F) + 0.4F, (world.getLightLevel(x, y, z) * 0.06F) + 0.4F
-		//};
-		
-		//float[] colorOccluded = new float[] {
-		//		color[0] - 0.2F, color[1] - 0.2F, color[2] - 0.2F
-		//};
-		
-		if(!isAir) {
-			//if(this.hasDifferentSides) {
-			
-			/* 1, 2, 3, 1, 3, 4
-			 *
-			 * 2_____3
-			 * |    /|
-			 * |   / |
-			 * |  /  |
-			 * | /   |
-			 * |/    |
-			 * 1-----4
-			 */
-			
-				// Top
-				if(world.getBlock(x, y + 1, z) != Block.water) {
-					vertexData.put(new float[] {minX, maxY, minZ}); // 1
-					vertexData.put(new float[] {textureCoordX, textureCoordY + s}); // 1
-					if(shouldOccludeTop(world, x, y, z, 1)) {
-						vertexData.put(colorsTopOccluded[0]);
-					} else {
-						vertexData.put(colorsTop[0]);
-					}
-					
-					vertexData.put(new float[] {minX, maxY, maxZ}); // 2
-					vertexData.put(new float[] {textureCoordX, textureCoordY}); // 2
-					if(shouldOccludeTop(world, x, y, z, 2)) {
-						vertexData.put(colorsTopOccluded[1]);
-					} else {
-						vertexData.put(colorsTop[1]);
-					}
-					
-					vertexData.put(new float[] {maxX, maxY, maxZ}); // 3
-					vertexData.put(new float[] {textureCoordX + s, textureCoordY}); // 3
-					if(shouldOccludeTop(world, x, y, z, 3)) {
-						vertexData.put(colorsTopOccluded[2]);
-					} else {
-						vertexData.put(colorsTop[2]);
-					}
-					
-					vertexData.put(new float[] {minX, maxY, minZ}); // 1
-					vertexData.put(new float[] {textureCoordX, textureCoordY + s}); // 1
-					if(shouldOccludeTop(world, x, y, z, 1)) {
-						vertexData.put(colorsTopOccluded[0]);
-					} else {
-						vertexData.put(colorsTop[0]);
-					}
-					
-					vertexData.put(new float[] {maxX, maxY, maxZ}); // 3
-					vertexData.put(new float[] {textureCoordX + s, textureCoordY}); // 3
-					if(shouldOccludeTop(world, x, y, z, 3)) {
-						vertexData.put(colorsTopOccluded[2]);
-					} else {
-						vertexData.put(colorsTop[2]);
-					}
-					
-					vertexData.put(new float[] {maxX, maxY, minZ}); // 4
-					vertexData.put(new float[] {textureCoordX + s, textureCoordY + s}); // 4
-					if(shouldOccludeTop(world, x, y, z, 4)) {
-						vertexData.put(colorsTopOccluded[3]);
-					} else {
-						vertexData.put(colorsTop[3]);
-					}
+
+		/* 1, 2, 3, 1, 3, 4
+			*
+			* 2_____3
+			* |    /|
+			* |   / |
+			* |  /  |
+			* | /   |
+			* |/    |
+			* 1-----4
+			*/
+
+		float[] l = new float[27];
+
+		for(int i = 0; i < 3; i++) {
+			for(int j = 0; j < 3; j++) {
+				for(int k = 0; k < 3; k++) {
+					l[j * 9 + i * 3 + k] = world.getLightLevel(x + (i - 1), y + (j - 1), z + (k - 1));
 				}
-			/*} else {
-			/* 1, 2, 3, 1, 3, 4
-			 *
-			 * 2_____3
-			 * |    /|
-			 * |   / |
-			 * |  /  |
-			 * | /   |
-			 * |/    |
-			 * 1-----4
-			 *//*
-			
-				// Top
-				if(world.getBlock(x, y + 1, z) != Block.water) {
-					vertexData.put(new float[] {minX, maxY, minZ}); // 1
-					vertexData.put(new float[] {textureCoordX, textureCoordY + s}); // 1
-					if(shouldOccludeTop(world, x, y, z, 1)) {
-						vertexData.put(colorOccluded);
-					} else {
-						vertexData.put(color);
-					}
-					
-					vertexData.put(new float[] {minX, maxY, maxZ}); // 2
-					vertexData.put(new float[] {textureCoordX, textureCoordY}); // 2
-					if(shouldOccludeTop(world, x, y, z, 2)) {
-						vertexData.put(colorOccluded);
-					} else {
-						vertexData.put(color);
-					}
-					
-					vertexData.put(new float[] {maxX, maxY, maxZ}); // 3
-					vertexData.put(new float[] {textureCoordX + s, textureCoordY}); // 3
-					if(shouldOccludeTop(world, x, y, z, 3)) {
-						vertexData.put(colorOccluded);
-					} else {
-						vertexData.put(color);
-					}
-					
-					vertexData.put(new float[] {minX, maxY, minZ}); // 1
-					vertexData.put(new float[] {textureCoordX, textureCoordY + s}); // 1
-					if(shouldOccludeTop(world, x, y, z, 1)) {
-						vertexData.put(colorOccluded);
-					} else {
-						vertexData.put(color);
-					}
-					
-					vertexData.put(new float[] {maxX, maxY, maxZ}); // 3
-					vertexData.put(new float[] {textureCoordX + s, textureCoordY}); // 3
-					if(shouldOccludeTop(world, x, y, z, 3)) {
-						vertexData.put(colorOccluded);
-					} else {
-						vertexData.put(color);
-					}
-					
-					vertexData.put(new float[] {maxX, maxY, minZ}); // 4
-					vertexData.put(new float[] {textureCoordX + s, textureCoordY + s}); // 4
-					if(shouldOccludeTop(world, x, y, z, 4)) {
-						vertexData.put(colorOccluded);
-					} else {
-						vertexData.put(color);
-					}
-				}
-			}*/
+			}
+		}
+
+		if(!world.getBlock(x, y + 1, z).isOpaque()) {
+			float[] colors = {
+				(l[18] + l[19] + l[21] + l[22]) / 4 * 0.1F + (shouldOccludeTop(state, 1) ? 0.1F : 0.4F),
+				(l[19] + l[20] + l[22] + l[23]) / 4 * 0.1F + (shouldOccludeTop(state, 2) ? 0.1F : 0.4F),
+				(l[22] + l[23] + l[25] + l[26]) / 4 * 0.1F + (shouldOccludeTop(state, 3) ? 0.1F : 0.4F),
+				(l[21] + l[22] + l[24] + l[25]) / 4 * 0.1F + (shouldOccludeTop(state, 4) ? 0.1F : 0.4F)
+			};
+
+			vertexData.put(new float[] {
+				minX, maxY, minZ, // 1
+				textureCoords[0] + s - 0, textureCoords[1] + s - 0,
+				colors[0], colors[0], colors[0],
+				minX, maxY, maxZ, // 2
+				textureCoords[0] + s - 0, textureCoords[1] + 0,
+				colors[1], colors[1], colors[1],
+				maxX, maxY, maxZ, // 3
+				textureCoords[0] + 0, textureCoords[1] + 0,
+				colors[2], colors[2], colors[2],
+				minX, maxY, minZ, // 1
+				textureCoords[0] + s - 0, textureCoords[1] + s - 0,
+				colors[0], colors[0], colors[0],
+				maxX, maxY, maxZ, // 3
+				textureCoords[0] + 0, textureCoords[1] + 0,
+				colors[2], colors[2], colors[2],
+				maxX, maxY, minZ, // 4
+				textureCoords[0] + o, textureCoords[1] + s - 0,
+				colors[3], colors[3], colors[3]
+			});
 		}
 	}
 }
