@@ -1,19 +1,9 @@
 package tk.nukeduck.vivivox.block;
 
-import java.nio.FloatBuffer;
-
-import tk.nukeduck.vivivox.world.BlockState;
-import tk.nukeduck.vivivox.world.World;
-
 public class BlockWater extends Block {
 	public BlockWater(int id) {
 		super(id);
 		this.setTransparent();
-	}
-
-	public BlockWater setHeight(int height) {
-		this.setBlockBounds(0, 0, 0, 1, (float) height * 0.125F, 1);
-		return this;
 	}
 
 	public static int animationFrame = 0;
@@ -40,7 +30,7 @@ public class BlockWater extends Block {
 		}
 		return 0;
 	}
-
+/*
 	@Override
 	public void renderToVBO(World world, BlockState state, boolean smoothLighting, FloatBuffer vertexData) {
 		int x = state.getPosition().x;
@@ -54,7 +44,7 @@ public class BlockWater extends Block {
 		float minZ = min.z + z;
 		float maxZ = max.z + z;
 
-		/* 1, 2, 3, 1, 3, 4
+		 1, 2, 3, 1, 3, 4
 			*
 			* 2_____3
 			* |    /|
@@ -63,7 +53,7 @@ public class BlockWater extends Block {
 			* | /   |
 			* |/    |
 			* 1-----4
-			*/
+
 
 		float[] l = new float[27];
 
@@ -85,24 +75,24 @@ public class BlockWater extends Block {
 
 			vertexData.put(new float[] {
 				minX, maxY, minZ, // 1
-				textureCoords[0] + s - 0, textureCoords[1] + s - 0,
+				textureCoords[0] + TEX_UNIT - 0, textureCoords[1] + TEX_UNIT - 0,
 				colors[0], colors[0], colors[0],
 				minX, maxY, maxZ, // 2
-				textureCoords[0] + s - 0, textureCoords[1] + 0,
+				textureCoords[0] + TEX_UNIT - 0, textureCoords[1] + 0,
 				colors[1], colors[1], colors[1],
 				maxX, maxY, maxZ, // 3
 				textureCoords[0] + 0, textureCoords[1] + 0,
 				colors[2], colors[2], colors[2],
 				minX, maxY, minZ, // 1
-				textureCoords[0] + s - 0, textureCoords[1] + s - 0,
+				textureCoords[0] + TEX_UNIT - 0, textureCoords[1] + TEX_UNIT - 0,
 				colors[0], colors[0], colors[0],
 				maxX, maxY, maxZ, // 3
 				textureCoords[0] + 0, textureCoords[1] + 0,
 				colors[2], colors[2], colors[2],
 				maxX, maxY, minZ, // 4
-				textureCoords[0] + o, textureCoords[1] + s - 0,
+				textureCoords[0], textureCoords[1] + TEX_UNIT - 0,
 				colors[3], colors[3], colors[3]
 			});
 		}
-	}
+}*/
 }

@@ -45,9 +45,11 @@ import tk.nukeduck.vivivox.gui.Gui;
 import tk.nukeduck.vivivox.gui.GuiElementButton;
 import tk.nukeduck.vivivox.helper.Render;
 import tk.nukeduck.vivivox.helper.ShaderProgram;
+import tk.nukeduck.vivivox.helper.Vec3i;
 import tk.nukeduck.vivivox.item.Item;
 import tk.nukeduck.vivivox.player.Player;
 import tk.nukeduck.vivivox.player.PlayerMovement;
+import tk.nukeduck.vivivox.world.BlockState;
 import tk.nukeduck.vivivox.world.Chunk;
 import tk.nukeduck.vivivox.world.World;
 
@@ -210,9 +212,9 @@ public class VivivoxMain {
 	private static void renderTick() {
 		renderDistance = 128;
 
-		while(world.getBlock((int) player.position.x, (int) player.position.y, (int) player.position.z) != null && world.getBlock((int) player.position.x, (int) player.position.y, (int) player.position.z).isOpaque()) {
+		/*while(world.getBlock((int) player.position.x, (int) player.position.y, (int) player.position.z) != null && world.getBlock((int) player.position.x, (int) player.position.y, (int) player.position.z).isOpaque()) {
 			player.position.y = (int) player.position.y + 1;
-		}
+		}*/
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -306,7 +308,7 @@ public class VivivoxMain {
 		make3D();
 	}
 
-	public static float playerSpeed = 0.055F;
+	public static float playerSpeed = 0.1F;
 	public static float speedMultiplier = 1.0F;
 
 	public static float mouseDampening = 0.6F;
@@ -357,8 +359,8 @@ public class VivivoxMain {
 			PlayerMovement.strafeRight(playerSpeed * speedMultiplier, player);
 		}
 
-		player.position.x = (player.position.x + world.worldSize) % world.worldSize;
-		player.position.z = (player.position.z + world.worldSize) % world.worldSize;
+		//player.position.x = (player.position.x + world.worldSize) % world.worldSize;
+		//player.position.z = (player.position.z + world.worldSize) % world.worldSize;
 
 		if(((world.getBlock((int) player.position.x, (int) player.position.y - 1, (int) player.position.z) != null && world.getBlock((int) player.position.x, (int) player.position.y - 1, (int) player.position.z).isOpaque()) ||
 				(world.getBlock((int) (player.position.x - (2 * playerWidth)), (int) player.position.y - 1, (int) player.position.z) != null && world.getBlock((int) (player.position.x - (2 * playerWidth)), (int) player.position.y - 1, (int) player.position.z).isOpaque()) ||
@@ -378,6 +380,10 @@ public class VivivoxMain {
 		if(!isOnGround) yVel -= gravity;
 		else yVel = 0.0F;
 		player.position.y += /*Keyboard.isKeyDown(Keyboard.KEY_SPACE) ? 0.1F : Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) ? -0.1F : 0.0F*/yVel;
+
+		if(world.getBlock((int)player.position.x, (int)player.position.y, (int)player.position.z).isOpaque()) {
+			player.position.y = (float)Math.ceil(player.position.y);
+		}
 
 		mouseAccelerationX += (float) Mouse.getDX() * mouseSpeed;
 		mouseAccelerationY -= (float) Mouse.getDY() * mouseSpeed;
@@ -410,10 +416,42 @@ public class VivivoxMain {
 			System.out.println("Gravity: " + gravity);
 		}
 
+		boolean mouseDown = Mouse.isButtonDown(0);
+		if(!VivivoxMain.mouseDown && mouseDown) {
+			/*Ray ray = RayTracer.getScreenCenterRay();
+
+			do {
+				ray.next();
+				BlockState state = world.getState(new Vec3i((int)ray.pos.x, (int)ray.pos.y, (int)ray.pos.z));
+
+				if(state.getBlock().isOpaque()) {
+					state.setBlock(Block.air);
+					break;
+				}
+			} while(ray.distance < 5f);*/
+
+			BlockState state = world.getState(new Vec3i((int)player.position.x, (int)player.position.y - 1, (int)player.position.z));
+			if(state.getBlock().isOpaque()) {
+				state.setBlock(Block.air);
+			}
+		}
+		VivivoxMain.mouseDown = mouseDown;
+
+		boolean mouseDownRight = Mouse.isButtonDown(1);
+		if(!VivivoxMain.mouseDownRight && mouseDownRight) {
+			BlockState state = world.getState(new Vec3i((int)player.position.x, (int)player.position.y - 1, (int)player.position.z));
+			if(!state.getBlock().isOpaque()) {
+				state.setBlock(Block.stone);
+			}
+		}
+		VivivoxMain.mouseDownRight = mouseDownRight;
+
 		for(Entity e : world.entities) {
 			e.tick(world);
 		}
 	}
+
+	private static boolean mouseDown, mouseDownRight;
 
 	public static float mouseAccelerationX = 0.0F, mouseAccelerationY = 0.0F;
 

@@ -87,11 +87,7 @@ public class GeneratorTree extends Generator {
 			for(int x2 = (int) (boughLocation.x - boughRadius); x2 < boughLocation.x + boughRadius; x2++) {
 				for(int y2 = (int) (boughLocation.y - boughRadius); y2 < boughLocation.y + boughRadius; y2++) {
 					for(int z2 = (int) (boughLocation.z - boughRadius); z2 < boughLocation.z + boughRadius; z2++) {
-						if(x2 >= 0 && y2 >= 0 && z2 >= 0 &&
-								x2 < world.worldSize &&
-								y2 < world.worldSize &&
-								z2 < world.worldSize &&
-								VectorTools.getDistance(boughLocation, x2, y2, z2) < boughRadius/* + perlinNoise(((double)x2 + worldOffset) / 10, ((double)z2 + worldOffset) / 10, 1) / 100*/) {
+						if(VectorTools.getDistance(boughLocation, x2, y2, z2) < boughRadius/* + perlinNoise(((double)x2 + worldOffset) / 10, ((double)z2 + worldOffset) / 10, 1) / 100*/) {
 							if(world.getBlock(x2, y2, z2) == Block.air) world.setBlock(x2, y2, z2, leaves);
 						}
 					}
@@ -117,7 +113,7 @@ public class GeneratorTree extends Generator {
 				if(branch.y > boughLocation.y) branch.y --;
 				if(branch.z > boughLocation.z) branch.z --;
 
-				if(branch.x > 0 && branch.y > 0 && branch.z > 0 && branch.x < world.worldSize && branch.y < world.worldSize && branch.z < world.worldSize) world.setBlock((int) branch.x, (int) branch.y, (int) branch.z, log);
+				world.setBlock((int) branch.x, (int) branch.y, (int) branch.z, log);
 			}
 		}
 	}

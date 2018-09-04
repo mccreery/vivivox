@@ -26,4 +26,9 @@ public class Vec3i {
     public boolean in(Vec3i min, Vec3i max) {
         return x >= min.x && x < max.x && y >= min.y && y < max.y && z >= min.z && z < max.z;
     }
+
+    @Override
+    public String toString() {
+        return x + ", " + y + ", " + z;
+    }
 }

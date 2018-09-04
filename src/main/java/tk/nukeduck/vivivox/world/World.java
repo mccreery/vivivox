@@ -16,14 +16,13 @@ import tk.nukeduck.vivivox.entity.Entity;
 import tk.nukeduck.vivivox.helper.*;
 import tk.nukeduck.vivivox.world.generator.*;
 
-public class World
-{
+public class World extends BlockView {
 	private static final int WATER_HEIGHT = 70;
+	public static final int worldSize = 256; // In blocks
 
-	public int worldSize = 256; // In blocks
 	public int minX = 0, minY = 0, minZ = 0, maxX = worldSize / Chunk.chunkSize, maxY = worldSize / Chunk.chunkSize, maxZ = worldSize / Chunk.chunkSize;
 
-	public Chunk[][][] chunks = new Chunk[worldSize / Chunk.chunkSize][(int) Math.ceil(worldSize / Chunk.chunkSize) + 1][(int) Math.ceil(worldSize / Chunk.chunkSize) + 1];
+	public BlockView[][][] chunks = new BlockView[worldSize / Chunk.chunkSize][(int) Math.ceil(worldSize / Chunk.chunkSize) + 1][(int) Math.ceil(worldSize / Chunk.chunkSize) + 1];
 	public int[][][] chunksRender = new int[worldSize / Chunk.chunkSize][worldSize / Chunk.chunkSize][worldSize / Chunk.chunkSize];
 	public int[][][] chunksRenderWater = new int[worldSize / Chunk.chunkSize][worldSize / Chunk.chunkSize][worldSize / Chunk.chunkSize];
 
@@ -169,11 +168,13 @@ public class World
 
 	private byte getBiome(int x, int z) {
 		Vec3i position = new Vec3i(x, 0, z);
-		Chunk chunk = getChunk(position);
+		BlockView chunk = getChunk(position);
 		return chunk != null ? chunk.getState(position).getBiome() : 0;
 	}
 
 	public World() {
+		super(Vec3i.ZERO, Chunk.chunkSizeVec.mul(worldSize / Chunk.chunkSize));
+
 		try {
 			vignetteOverlay = new Image("textures/vignette.png");
 			itemBar = new Image("textures/itembar.png");
@@ -192,7 +193,18 @@ public class World
 		for(int x = 0, relativeX = 0; x < chunks.length; x++, relativeX += Chunk.chunkSize) {
 			for(int y = 0, relativeY = 0; y < chunks.length; y++, relativeY += Chunk.chunkSize) {
 				for(int z = 0, relativeZ = 0; z < chunks.length; z++, relativeZ += Chunk.chunkSize) {
-					chunks[x][y][z] = new Chunk(this, new Vec3i(relativeX, relativeY, relativeZ));
+					Vec3i chunk = new Vec3i(relativeX, relativeY, relativeZ);
+
+					if(x == 0 || x == chunks.length - 1 || y == 0 || y == chunks.length - 1 || z == 0 || z == chunks.length - 1) {
+						chunks[x][y][z] = new BlockView(chunk, chunk.add(Chunk.chunkSizeVec)) {
+							@Override
+							public BlockState getState(Vec3i position) {
+								return new BlockState.OOB(World.this, position, Block.stone);
+							}
+						};
+					} else {
+						chunks[x][y][z] = new Chunk(this, chunk);
+					}
 				}
 			}
 			chunksAdded++;
@@ -288,7 +300,7 @@ public class World
 		for(int x = 0; x < chunks.length; x++) {
 			for(int y = 0; y < chunks.length; y++) {
 				for(int z = 0; z < chunks.length; z++) {
-					chunks[x][y][z].updateVBO(false, this, x, y, z);
+					chunks[x][y][z].updateVBO(false);
 				}
 				chunksDrawn++;
 				updateWorldGenText("Painting Canvas: " + (int)(((float)chunksDrawn / (float)maxChunksDrawn) * 100) + "%");
@@ -306,7 +318,11 @@ public class World
 		for(int x = minX; x < maxX; x++) {
 			for(int y = minY; y < maxY; y++) {
 				for(int z = minZ; z < maxZ; z++) {
-					this.chunks[x][y][z].updateBlocks();
+					BlockView chunk = chunks[x][y][z];
+
+					if(chunk instanceof Chunk) {
+						((Chunk)chunk).updateBlocks();
+					}
 				}
 			}
 		}
@@ -369,58 +385,23 @@ public class World
 
 	public void setBlock(int x, int y, int z, Block block) {
 		Vec3i position = new Vec3i(x, y, z);
-		Chunk chunk = getChunk(position);
-		if(chunk == null) return;
-
-		chunk.getState(position).setBlock(block);
-
-		if(VivivoxMain.hasStartedGame) {
-			int chunkX = x / Chunk.chunkSize;
-			int chunkY = y / Chunk.chunkSize;
-			int chunkZ = z / Chunk.chunkSize;
-
-			chunk.updateVBO(false, this, chunkX, chunkY, chunkZ);
-
-			int xRel = x % Chunk.chunkSize;
-			if(xRel == 0 && chunkX > 1) chunks[(int) (chunkX) - 1][(int) (chunkY)][(int) (chunkZ)].updateVBO(false, this, (int) (chunkX) - 1, (int) (chunkY), (int) (chunkZ));
-			else if(xRel == 15 && chunkX + 1 < chunks.length) chunks[(int) (chunkX) + 1][(int) (chunkY)][(int) (chunkZ)].updateVBO(false, this, (int) (chunkX) + 1, (int) (chunkY), (int) (chunkZ));
-
-			int yRel = y % Chunk.chunkSize;
-			if(yRel == 0 && chunkY > 1) chunks[(int) (chunkX)][(int) (chunkY) - 1][(int) (chunkZ)].updateVBO(false, this, (int) (chunkX), (int) (chunkY) - 1, (int) (chunkZ));
-			if(yRel == 15 && chunkY + 1 < chunks.length) chunks[(int) (chunkX)][(int) (chunkY) + 1][(int) (chunkZ)].updateVBO(false, this, (int) (chunkX), (int) (chunkY) + 1, (int) (chunkZ));
-
-			int zRel = z % Chunk.chunkSize;
-			if(zRel == 0 && chunkZ > 1) chunks[(int) (chunkX)][(int) (chunkY)][(int) (chunkZ) - 1].updateVBO(false, this, (int) (chunkX), (int) (chunkY), (int) (chunkZ) - 1);
-			if(zRel == 15 && chunkZ + 1 < chunks.length) chunks[(int) (chunkX)][(int) (chunkY)][(int) (chunkZ) + 1].updateVBO(false, this, (int) (chunkX), (int) (chunkY), (int) (chunkZ) + 1);
-		}
+		BlockView chunk = getChunk(position);
+		if(chunk != null) chunk.getState(position).setBlock(block);
 	}
 
 	public void setLightLevel(int x, int y, int z, byte light) {
-		int xScaled = x / Chunk.chunkSize, yScaled = y / Chunk.chunkSize, zScaled = z / Chunk.chunkSize;
-		chunks[x / Chunk.chunkSize][y / Chunk.chunkSize][z / Chunk.chunkSize].setLightLevelAt(x % Chunk.chunkSize, y % Chunk.chunkSize, z % Chunk.chunkSize, light);
-
-		if(VivivoxMain.hasStartedGame) {
-			chunks[xScaled][yScaled][zScaled].updateVBO(false, this, xScaled, yScaled, zScaled);
-
-			int xRel = x % Chunk.chunkSize;
-			if(xRel == 0 && xScaled > 1) chunks[xScaled - 1][yScaled][zScaled].updateVBO(false, this, xScaled - 1, yScaled, zScaled);
-			else if(xRel == 15 && xScaled + 1 < chunks.length) chunks[xScaled + 1][yScaled][zScaled].updateVBO(false, this, xScaled + 1, yScaled, zScaled);
-
-			int yRel = y % Chunk.chunkSize;
-			if(yRel == 0 && yScaled > 1) chunks[xScaled][yScaled - 1][zScaled].updateVBO(false, this, xScaled, yScaled - 1, zScaled);
-			if(yRel == 15 && yScaled + 1 < chunks.length) chunks[xScaled][yScaled + 1][zScaled].updateVBO(false, this, xScaled, yScaled + 1, zScaled);
-
-			int zRel = z % Chunk.chunkSize;
-			if(zRel == 0 && zScaled > 1) chunks[xScaled][yScaled][zScaled - 1].updateVBO(false, this, xScaled, yScaled, zScaled - 1);
-			if(zRel == 15 && zScaled + 1 < chunks.length) chunks[xScaled][yScaled][zScaled + 1].updateVBO(false, this, xScaled, yScaled, zScaled + 1);
-		}
+		Vec3i position = new Vec3i(x, y, z);
+		BlockView chunk = getChunk(position);
+		if(chunk != null) chunk.getState(position).setLightLevel(light);
 	}
 
 	public void setBiome(int x, int z, byte id) {
-		chunks[x / Chunk.chunkSize][0][z / Chunk.chunkSize].setBiomeAt(x % Chunk.chunkSize, z % Chunk.chunkSize, id);
+		Vec3i position = new Vec3i(x, 0, z);
+		BlockView chunk = getChunk(position);
+		if(chunk != null) chunk.getState(position).setBiome(id);
 	}
 
-	private Chunk getChunk(Vec3i position) {
+	public BlockView getChunk(Vec3i position) {
 		if(position.in(Vec3i.ZERO, Chunk.chunkSizeVec.mul(chunks.length))) {
 			return chunks[position.x / Chunk.chunkSize][position.y / Chunk.chunkSize][position.z / Chunk.chunkSize];
 		} else {
@@ -429,15 +410,15 @@ public class World
 	}
 
 	public BlockState getState(Vec3i position) {
-		Chunk chunk = getChunk(position);
-		return chunk != null ? chunk.getState(position) : BlockState.AIR;
+		BlockView chunk = getChunk(position);
+		return chunk != null ? chunk.getState(position) : new BlockState.OOB(this, position, Block.stone);
 	}
 
 	public Block getBlock(int x, int y, int z) {
 		return getState(new Vec3i(x, y, z)).getBlock();
 	}
 
-	public byte getLightLevel(int x, int y, int z) {
+	public float getLightLevel(int x, int y, int z) {
 		return getState(new Vec3i(x, y, z)).getLightLevel();
 	}
 
@@ -459,31 +440,16 @@ public class World
 
 			GL20.glUseProgram(VivivoxMain.shaderProgram);
 
-			for(int worldX = -1; worldX < 2; worldX++) {
-				for(int worldZ = -1; worldZ < 2; worldZ++) {
-					glPushMatrix(); {
-						glTranslatef(worldSize * worldX, 0.0F, worldSize * worldZ);
-
-						for(int x = minX; x < maxX; x++) {
-							for(int y = minY; y < maxY; y++) {
-								for(int z = minZ; z < maxZ; z++) {
-									if(viewFrustum.cubeInFrustum((x * Chunk.chunkSize) - (worldX * worldSize) + position.x, (y * Chunk.chunkSize) + position.y, (z * Chunk.chunkSize) - (worldZ * worldSize) + position.z, Chunk.chunkSize)) {
-										glBindBuffer(GL_ARRAY_BUFFER, chunksRender[x][y][z]);
-
-										glVertexPointer(Chunk.vertexSize, GL_FLOAT, 32, 0);
-										glTexCoordPointer(Chunk.textureSize, GL_FLOAT, 32, 12);
-										glColorPointer(Chunk.colorSize, GL_FLOAT, 32, 20);
-
-										glDrawArrays(GL_TRIANGLES, 0, chunks[x][y][z].amountOfVertices);
-									}
-								}
-							}
+			for(int x = minX; x < maxX; x++) {
+				for(int y = minY; y < maxY; y++) {
+					for(int z = minZ; z < maxZ; z++) {
+						if(viewFrustum.cubeInFrustum((x * Chunk.chunkSize) + position.x, (y * Chunk.chunkSize) + position.y, (z * Chunk.chunkSize) + position.z, Chunk.chunkSize)) {
+							chunks[x][y][z].draw();
 						}
 					}
-					glPopMatrix();
 				}
 			}
-
+/*
             GL20.glUseProgram(VivivoxMain.underwaterShaderProgram);
             glEnable(GL_BLEND);
 
@@ -497,6 +463,9 @@ public class World
 						for(int x = minX; x < maxX; x++) {
 							for(int y = minY; y < maxY; y++) {
 								for(int z = minZ; z < maxZ; z++) {
+									if(!(chunks[x][y][z] instanceof Chunk)) continue;
+									Chunk chunk = (Chunk)chunks[x][y][z];
+
 									if(viewFrustum.cubeInFrustum((x * Chunk.chunkSize) - (worldX * worldSize) + position.x, (y * Chunk.chunkSize) + position.y, (z * Chunk.chunkSize) - (worldZ * worldSize) + position.z, Chunk.chunkSize)) {
 										glBindBuffer(GL_ARRAY_BUFFER, chunksRenderWater[x][y][z]);
 
@@ -517,7 +486,7 @@ public class World
 					glPopMatrix();
 				}
 			}
-
+*/
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 			GL20.glUseProgram(0);
 
