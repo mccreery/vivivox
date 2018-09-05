@@ -324,7 +324,7 @@ public class VivivoxMain {
 		updateCounter += 1;
 		if(updateCounter == 10) {
 			updateCounter = 0;
-			world.update();
+			//world.update();
 		}
 
 		world.waveOffset += 0.02F;

@@ -49,7 +49,7 @@ public class Chunk extends BlockView {
 		}
 
 		public byte getBiome() {
-			return lightLevels[localPosition.x][localPosition.y][localPosition.z];
+			return biomes[localPosition.x][localPosition.z];
 		}
 
 		@Override
@@ -100,23 +100,5 @@ public class Chunk extends BlockView {
 		}
 	}
 
-	public void setBiomeAt(int x, int z, byte id) {
-		this.biomes[x][z] = id;
-	}
-
-	public void setLightLevelAt(int x, int y, int z, byte light) {
-		this.lightLevels[x][y][z] = light;
-	}
-
 	public static int renderMax = VivivoxMain.renderDistance + 4;
-
-	public void updateBlocks() {
-		for(int x = 0; x < chunkSize; x++) {
-			for(int y = 0; y < chunkSize; y++) {
-				for(int z = 0; z < chunkSize; z++) {
-
-				}
-			}
-		}
-	}
 }

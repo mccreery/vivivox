@@ -314,20 +314,6 @@ public class World extends BlockView {
 		}*/
 	}
 
-	public void update() {
-		for(int x = minX; x < maxX; x++) {
-			for(int y = minY; y < maxY; y++) {
-				for(int z = minZ; z < maxZ; z++) {
-					BlockView chunk = chunks[x][y][z];
-
-					if(chunk instanceof Chunk) {
-						((Chunk)chunk).updateBlocks();
-					}
-				}
-			}
-		}
-	}
-
 	public void spawnEntity(Entity entity) {
 		this.entities.add(entity);
 	}

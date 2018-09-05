@@ -2,6 +2,7 @@ package tk.nukeduck.vivivox.world;
 
 import tk.nukeduck.vivivox.block.Block;
 import tk.nukeduck.vivivox.block.BlockView;
+import tk.nukeduck.vivivox.block.BlockWindow;
 import tk.nukeduck.vivivox.helper.GeneralTools;
 import tk.nukeduck.vivivox.helper.Vec3i;
 
@@ -65,8 +66,7 @@ public abstract class BlockState {
 
         @Override
         public byte getLightLevel() {
-            return 0;
-            //(byte)new BlockWindow(world, position.sub(new Vec3i(1, 1, 1)), position.add(new Vec3i(1, 1, 1))).getAverageLight();
+            return (byte)new BlockWindow(world, position.sub(new Vec3i(1, 1, 1)), position.add(new Vec3i(1, 1, 1))).getAverageLight();
         }
 
         @Override
