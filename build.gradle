@@ -23,4 +23,8 @@ dependencies {
     implementation "org.lwjgl.lwjgl:lwjgl:$lwjgl"
     implementation "org.lwjgl.lwjgl:lwjgl_util:$lwjgl"
     implementation "org.slick2d:slick2d-core:$slick"
+
+    runtime "org.lwjgl.lwjgl:lwjgl-platform:$lwjgl:natives-windows"
+    runtime "org.lwjgl.lwjgl:lwjgl-platform:$lwjgl:natives-linux"
+    runtime "org.lwjgl.lwjgl:lwjgl-platform:$lwjgl:natives-osx"
 }
